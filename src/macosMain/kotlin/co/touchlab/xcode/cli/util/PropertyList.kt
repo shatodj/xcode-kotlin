@@ -1,6 +1,6 @@
 package co.touchlab.xcode.cli.util
 
-import co.touchlab.kermit.Logger
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
@@ -21,10 +21,23 @@ import platform.Foundation.NSPropertyListOpenStepFormat
 import platform.Foundation.NSPropertyListSerialization
 import platform.Foundation.NSPropertyListXMLFormat_v1_0
 import platform.Foundation.NSString
-import platform.Foundation.create
 import platform.Foundation.valueForKey
 import platform.darwin.NSObject
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.MutableList
+import kotlin.collections.MutableMap
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.iterator
+import kotlin.collections.map
+import kotlin.collections.mutableListOf
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
+import kotlin.collections.toMutableList
+import kotlin.collections.toMutableMap
 
+@OptIn(ExperimentalForeignApi::class)
 class PropertyList(val root: Object) {
     enum class Format {
         XML, OpenStep, Binary;
@@ -81,7 +94,7 @@ class PropertyList(val root: Object) {
             val data = NSPropertyListSerialization.dataWithPropertyList(
                 plist = recursiveReverseBridge(root),
                 format = format.objc,
-                options = 0,
+                options = 0u,
                 error = errorPointer.ptr,
             )
             val error = errorPointer.value
@@ -113,20 +126,18 @@ class PropertyList(val root: Object) {
         is Object.String -> obj.value.objc
     }
 
-    class UnsupportedObjectTypeException(val nsObject: NSObject): Exception("Unsupported property list value: $nsObject")
-    class DeserializationException(val error: NSError): Exception("Could not deserialize property list. Error: ${error.description}.")
-    class SerializationException(val error: NSError): Exception("Could not serialize property list. Error: ${error.description}.")
+    class UnsupportedObjectTypeException(nsObject: NSObject): Exception("Unsupported property list value: $nsObject")
+    class DeserializationException(error: NSError): Exception("Could not deserialize property list. Error: ${error.description}.")
+    class SerializationException(error: NSError): Exception("Could not serialize property list. Error: ${error.description}.")
 
     companion object {
-        private val logger = Logger.withTag("PropertyList")
-
         fun create(path: Path): PropertyList {
-            logger.v { "Loading property list from $path." }
+            Console.muted("Loading property list from $path.")
             return create(File(path).dataContents())
         }
 
         fun create(file: File): PropertyList {
-            logger.v { "Loading property list from file at ${file.path}" }
+            Console.muted("Loading property list from file at ${file.path}")
             return create(file.dataContents())
         }
 

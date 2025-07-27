@@ -7,7 +7,7 @@ import co.touchlab.xcode.cli.util.Console
 
 class Info: BaseXcodeListSubcommand("info", "Shows information about the plugin") {
 
-    override fun execute() = with(Console) {
+    override suspend fun run() = with(Console) {
         val installedVersion = PluginManager.installedVersion
         val bundledVersion = PluginManager.bundledVersion
 
@@ -43,8 +43,9 @@ class Info: BaseXcodeListSubcommand("info", "Shows information about the plugin"
             echo("Installed Xcode versions:")
             val longestNameLength = xcodeInstallations.maxOf { it.name.length }
             for (install in xcodeInstallations) {
-                val spacesAfterName = (1..(longestNameLength - install.name.length)).joinToString(separator = "") { " " }
-                val compatibilityMark = if (supportedXcodeUuids.contains(install.pluginCompatabilityId)) "✔" else "x"
+                val spacesAfterName =
+                    (1..(longestNameLength - install.name.length)).joinToString(separator = "") { " " }
+                val compatibilityMark = if (install.supported(supportedXcodeUuids)) "✔" else "x"
                 echo("$compatibilityMark\t${install.name}$spacesAfterName\t${install.pluginCompatabilityId}\t${install.path}")
             }
 
